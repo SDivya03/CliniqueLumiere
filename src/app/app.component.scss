@@ -14,7 +14,15 @@
   gap: 4px;
 }
 
-.cl-nav--active {
+// Force the nav links white on the dark navy toolbar (mat-button otherwise
+// renders its label in the theme's dark on-surface colour — invisible here).
+.cl-nav a {
+  --mdc-text-button-label-text-color: #fff;
+  color: #fff;
+}
+
+.cl-nav a.cl-nav--active {
+  --mdc-text-button-label-text-color: var(--cl-gold);
   color: var(--cl-gold);
   font-weight: 500;
 }
