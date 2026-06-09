@@ -1,0 +1,104 @@
+<mat-card class="registration-card">
+  <mat-card-header>
+    <mat-card-title>Register a new patient</mat-card-title>
+    <mat-card-subtitle>Personal details and emergency contact</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    @if (registered()) {
+      <div class="cl-banner cl-banner--success" role="status">
+        <mat-icon>check_circle</mat-icon>
+        <span>Patient registered successfully.</span>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="cl-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>First name</mat-label>
+          <input matInput formControlName="firstName" autocomplete="given-name" required />
+          @if (controls.firstName.hasError('required')) {
+            <mat-error>First name is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Last name</mat-label>
+          <input matInput formControlName="lastName" autocomplete="family-name" required />
+          @if (controls.lastName.hasError('required')) {
+            <mat-error>Last name is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="cl-span-2">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" required />
+          @if (controls.email.hasError('required')) {
+            <mat-error>Email is required</mat-error>
+          } @else if (controls.email.hasError('email')) {
+            <mat-error>Enter a valid email address</mat-error>
+          }
+        </mat-form-field>
+
+        @if (duplicateEmail()) {
+          <div class="cl-field-error cl-span-2" role="alert">
+            A patient with this email already exists
+          </div>
+        }
+
+        <mat-form-field appearance="outline">
+          <mat-label>Phone</mat-label>
+          <input matInput type="tel" formControlName="phone" autocomplete="tel" />
+          @if (controls.phone.hasError('phone')) {
+            <mat-error>Enter a valid phone number</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Date of birth</mat-label>
+          <input matInput [matDatepicker]="dobPicker" [max]="maxDob" formControlName="dateOfBirth" />
+          <mat-datepicker-toggle matIconSuffix [for]="dobPicker"></mat-datepicker-toggle>
+          <mat-datepicker #dobPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Gender</mat-label>
+          <mat-select formControlName="gender">
+            @for (option of genders; track option) {
+              <mat-option [value]="option">{{ option }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <h3 class="cl-section-title">Emergency contact <span>(optional)</span></h3>
+      <div class="cl-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Contact name</mat-label>
+          <input matInput formControlName="emergencyContactName" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Contact phone</mat-label>
+          <input matInput type="tel" formControlName="emergencyContactPhone" />
+          @if (controls.emergencyContactPhone.hasError('phone')) {
+            <mat-error>Enter a valid phone number</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      @if (submitError() && !duplicateEmail()) {
+        <div class="cl-banner cl-banner--error" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ submitError() }}</span>
+        </div>
+      }
+
+      <div class="cl-actions">
+        <button mat-flat-button color="primary" type="submit" [disabled]="!canSubmit()">
+          {{ submitting() ? 'Registering…' : 'Register patient' }}
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

@@ -4,7 +4,7 @@
 
 **Product:** Clinique Lumière Clinic Management System  
 **Vision:** Replace spreadsheet-based back-office operations with a web application that manages patients, appointments, and staff schedules for a private wellness clinic.  
-**Stack:** Angular 18 (standalone components + signals) · Express.js · SQLite  
+**Stack:** Angular 17+ (standalone components + signals, Angular Material) · ASP.NET Core 8 (C#) REST API · SQLite via Entity Framework Core  
 **Scope:** 3 features — Patient Intake, Appointments, Staff Dashboard
 
 ---
@@ -185,19 +185,22 @@
 
 # Technical Architecture
 
-## Backend (Express + SQLite)
+## Backend (ASP.NET Core 8 + EF Core + SQLite)
 
-- **DB layer:** `sql.js` (pure JavaScript SQLite — no native compilation required)
-- Schema: `patients`, `staff`, `services`, `appointments` tables (seeded with demo data)
-- REST API on port 3000; CORS allowed for `localhost:4200`
-- Persistence: DB file at `backend/db/clinique.db`; saved to disk after every write
+- **ORM:** Entity Framework Core with the SQLite provider
+- Schema: `patients`, `staff`, `services`, `appointments` entities (seeded with demo data)
+- REST API on port 5050; CORS allowed for `localhost:4200`
+- **Docs:** Swagger / OpenAPI — every endpoint documented (Swagger UI in development)
+- **Tests:** xUnit
+- Persistence: SQLite DB file (`clinique.db`) created via `EnsureCreated()` on startup
 
-## Frontend (Angular 18)
+## Frontend (Angular 17+)
 
-- Standalone components throughout (no NgModules)
+- Standalone components throughout (no NgModules); Angular Material
 - Signals for reactive local state (`signal()`, `computed()`, `effect()`)
 - `HttpClient` via `provideHttpClient()` in `app.config.ts`
 - SCSS with CSS custom properties for the clinic theme (dark navy + gold)
+- **Tests:** Jest
 - Lazy-loaded routes: `/patients`, `/appointments`, `/staff`
 
 ## Folder Structure
@@ -205,13 +208,14 @@
 ```
 CliniqueLumiere/
 ├── backend/
-│   ├── db/database.js          ← sql.js init, helpers, seed
-│   ├── routes/
-│   │   ├── patients.js
-│   │   ├── appointments.js
-│   │   ├── staff.js
-│   │   └── services.js
-│   └── server.js
+│   ├── src/CliniqueLumiere.Api/
+│   │   ├── Controllers/         ← PatientsController, AppointmentsController, ...
+│   │   ├── Data/                ← ClinicDbContext (EF Core), DbSeeder
+│   │   ├── Models/              ← EF Core entities
+│   │   ├── Dtos/                ← request/response DTOs
+│   │   ├── Mapping/             ← entity ⇄ DTO mappers
+│   │   └── Program.cs           ← host, DI, CORS, Swagger
+│   └── tests/CliniqueLumiere.Api.Tests/   ← xUnit tests
 └── src/
     └── app/
         ├── core/
@@ -228,7 +232,7 @@ CliniqueLumiere/
 
 # Verification Checklist
 
-- [ ] `cd backend && npm install && node server.js` → health check at `http://localhost:3000/api/health` returns `{status:"ok"}`
+- [ ] `cd backend/src/CliniqueLumiere.Api && dotnet run` → Swagger UI loads at `http://localhost:5050/swagger`
 - [ ] `ng serve` → app loads at `http://localhost:4200`
 - [ ] Patient Intake: register a new patient → appears in list → edit medical history → saves
 - [ ] Appointments: book appointment → conflict detection blocks double-booking → cancel appointment

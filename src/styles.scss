@@ -1,0 +1,38 @@
+@use '@angular/material' as mat;
+
+// Clinic theme palette — dark navy + gold (see PRD "Technical Architecture")
+:root {
+  --cl-navy: #1a2238;
+  --cl-navy-light: #2b3658;
+  --cl-gold: #c9a44c;
+  --cl-bg: #f4f5f8;
+  --cl-error: #c62828;
+}
+
+@include mat.core();
+
+$clinic-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$azure-palette,
+    tertiary: mat.$blue-palette,
+  ),
+  typography: (
+    brand-family: 'Roboto',
+    plain-family: 'Roboto',
+  ),
+  density: (
+    scale: 0,
+  ),
+));
+
+html {
+  @include mat.all-component-themes($clinic-theme);
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--cl-bg);
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
