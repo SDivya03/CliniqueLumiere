@@ -35,12 +35,28 @@ public class PatientsController : ControllerBase
     /// <summary>Register a new patient (Story CL-1.1.1).</summary>
     /// <response code="201">Patient created.</response>
     /// <response code="400">Validation failed (missing required field or bad email/phone).</response>
+    /// <response code="409">A patient with the same email already exists (Story CL-1.1.2).</response>
     [HttpPost]
     [ProducesResponseType(typeof(PatientResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<PatientResponse>> Create([FromBody] CreatePatientRequest request)
     {
         var patient = request.ToEntity(DateTimeOffset.UtcNow);
+
+        // Reject duplicate emails up front (Story CL-1.1.2). ToEntity lower-cases the email,
+        // so an equality check is effectively case-insensitive and the unique-email index
+        // never trips an unhandled 500.
+        var emailTaken = await _db.Patients.AnyAsync(p => p.Email == patient.Email);
+        if (emailTaken)
+        {
+            return Conflict(new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "Email already registered",
+                Detail = "A patient with this email already exists.",
+            });
+        }
 
         _db.Patients.Add(patient);
         await _db.SaveChangesAsync();

@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { RegistrationFormComponent } from './registration-form.component';
@@ -114,5 +117,26 @@ describe('RegistrationFormComponent', () => {
     } finally {
       jest.useRealTimers();
     }
+  it('renders the inline duplicate-email message after a real 409 response (CL-1.1.2)', async () => {
+    // Exercise the real service path: a 409 must surface as an inline message in the DOM.
+    registerSpy.mockRestore();
+    const httpMock = TestBed.inject(HttpTestingController);
+    fillValid();
+
+    const submitted = component.submit();
+    const req = httpMock.expectOne('http://localhost:5050/api/patients');
+    expect(req.request.method).toBe('POST');
+    req.flush(
+      { title: 'Email already registered' },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await submitted;
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    const error = el.querySelector('.cl-field-error');
+    expect(error?.textContent).toContain('A patient with this email already exists');
+    expect(component.registered()).toBe(false);
+    httpMock.verify();
   });
 });
