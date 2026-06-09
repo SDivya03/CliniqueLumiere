@@ -27,6 +27,26 @@ public static class PatientMapping
         };
     }
 
+    /// <summary>
+    /// Apply an update request onto an existing tracked entity (Story CL-1.2.2),
+    /// normalising whitespace and email casing. CreatedAt is left untouched.
+    /// </summary>
+    public static void ApplyUpdate(this Patient patient, UpdatePatientRequest request)
+    {
+        patient.FirstName = request.FirstName.Trim();
+        patient.LastName = request.LastName.Trim();
+        patient.Email = request.Email.Trim().ToLowerInvariant();
+        patient.Phone = Normalise(request.Phone);
+        patient.DateOfBirth = Normalise(request.DateOfBirth);
+        patient.Gender = Normalise(request.Gender);
+        patient.EmergencyContactName = Normalise(request.EmergencyContact?.Name);
+        patient.EmergencyContactPhone = Normalise(request.EmergencyContact?.Phone);
+        patient.MedicalAllergies = Normalise(request.MedicalHistory?.Allergies);
+        patient.MedicalMedications = Normalise(request.MedicalHistory?.Medications);
+        patient.MedicalConditions = Normalise(request.MedicalHistory?.Conditions);
+        patient.MedicalNotes = Normalise(request.MedicalHistory?.Notes);
+    }
+
     /// <summary>Project an entity into its API response shape.</summary>
     public static PatientResponse ToResponse(this Patient patient)
     {

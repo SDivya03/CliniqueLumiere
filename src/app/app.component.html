@@ -1,6 +1,10 @@
 <mat-toolbar class="cl-toolbar">
   <mat-icon class="cl-logo">spa</mat-icon>
   <span>{{ title }}</span>
+  <nav class="cl-nav">
+    <a mat-button routerLink="/patients" routerLinkActive="cl-nav--active" [routerLinkActiveOptions]="{ exact: true }">Register</a>
+    <a mat-button routerLink="/patients/manage" routerLinkActive="cl-nav--active">Patients</a>
+  </nav>
 </mat-toolbar>
 
 <main>

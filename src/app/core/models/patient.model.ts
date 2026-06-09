@@ -50,3 +50,15 @@ export interface CreatePatientRequest {
   emergencyContact: EmergencyContact | null;
   medicalHistory: MedicalHistory | null;
 }
+
+/** Payload sent to the API when editing an existing patient (Story CL-1.2.2). */
+export interface UpdatePatientRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  dateOfBirth: string | null;
+  gender: Gender | null;
+  emergencyContact: EmergencyContact | null;
+  medicalHistory: MedicalHistory | null;
+}

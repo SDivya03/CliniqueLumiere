@@ -7,3 +7,14 @@
 .cl-logo {
   color: var(--cl-gold);
 }
+
+.cl-nav {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.cl-nav--active {
+  color: var(--cl-gold);
+  font-weight: 500;
+}

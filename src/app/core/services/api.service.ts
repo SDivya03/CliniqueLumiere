@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { CreatePatientRequest, Patient } from '../models/patient.model';
+import { CreatePatientRequest, Patient, UpdatePatientRequest } from '../models/patient.model';
 
 /** Base URL of the Clinique Lumière REST API (ASP.NET Core backend, see backend/Properties/launchSettings.json). */
 const API_BASE = 'http://localhost:5050/api';
@@ -24,5 +24,10 @@ export class ApiService {
   /** Fetch all registered patients. */
   getPatients(): Observable<Patient[]> {
     return this.http.get<Patient[]>(`${API_BASE}/patients`);
+  }
+
+  /** Update an existing patient. Resolves with the updated record on success. */
+  updatePatient(id: number, payload: UpdatePatientRequest): Observable<Patient> {
+    return this.http.put<Patient>(`${API_BASE}/patients/${id}`, payload);
   }
 }

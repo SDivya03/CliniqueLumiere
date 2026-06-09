@@ -118,6 +118,8 @@ describe('RegistrationFormComponent', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+
   it('renders the inline duplicate-email message after a real 409 response (CL-1.1.2)', async () => {
     // Exercise the real service path: a 409 must surface as an inline message in the DOM.
     registerSpy.mockRestore();
