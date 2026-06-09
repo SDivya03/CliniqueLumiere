@@ -121,6 +121,16 @@
 
       </fieldset>
 
+      @if (conflict()) {
+        <div class="cl-banner cl-banner--error" role="alert">
+          <mat-icon>event_busy</mat-icon>
+          <span>
+            Time slot conflict: {{ conflict()!.practitionerName }} is already booked from
+            {{ formatTime(conflict()!.conflictStart) }} to {{ formatTime(conflict()!.conflictEnd) }}
+          </span>
+        </div>
+      }
+
       @if (submitError()) {
         <div class="cl-banner cl-banner--error" role="alert">
           <mat-icon>error_outline</mat-icon>

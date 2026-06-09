@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ApiService } from '../../../core/services/api.service';
 import {
   Appointment,
+  AppointmentConflict,
   CreateAppointmentRequest,
   Practitioner,
   Service,
@@ -26,6 +27,7 @@ export class AppointmentService {
   private readonly _submitting = signal(false);
   private readonly _submitError = signal<string | null>(null);
   private readonly _loadError = signal<string | null>(null);
+  private readonly _conflict = signal<AppointmentConflict | null>(null);
 
   /** Available services (populated on form init). */
   readonly services = this._services.asReadonly();
@@ -39,6 +41,11 @@ export class AppointmentService {
   readonly submitError = this._submitError.asReadonly();
   /** A human-readable error that occurred while loading reference data, or null. */
   readonly loadError = this._loadError.asReadonly();
+  /**
+   * Conflict details when the last booking attempt returned 409, or null.
+   * Contains the practitioner name and the conflicting time range for inline display.
+   */
+  readonly conflict = this._conflict.asReadonly();
 
   /**
    * Load services and practitioners required to populate the booking form.
@@ -96,25 +103,33 @@ export class AppointmentService {
   async book(payload: CreateAppointmentRequest): Promise<Appointment | null> {
     this._submitting.set(true);
     this._submitError.set(null);
+    this._conflict.set(null);
 
     try {
       return await new Promise<Appointment>((resolve, reject) =>
         this.api.createAppointment(payload).subscribe({ next: resolve, error: reject }),
       );
     } catch (error) {
-      this._submitError.set(
-        error instanceof HttpErrorResponse && error.status === 400
-          ? 'Start time must be in the future.'
-          : 'Could not book the appointment. Please try again.',
-      );
+      if (error instanceof HttpErrorResponse) {
+        if (error.status === 409) {
+          this._conflict.set(error.error as AppointmentConflict);
+        } else if (error.status === 400) {
+          this._submitError.set('Start time must be in the future.');
+        } else {
+          this._submitError.set('Could not book the appointment. Please try again.');
+        }
+      } else {
+        this._submitError.set('Could not book the appointment. Please try again.');
+      }
       return null;
     } finally {
       this._submitting.set(false);
     }
   }
 
-  /** Reset transient submit error state. */
+  /** Reset transient submit error and conflict state. */
   clearSubmitError(): void {
     this._submitError.set(null);
+    this._conflict.set(null);
   }
 }

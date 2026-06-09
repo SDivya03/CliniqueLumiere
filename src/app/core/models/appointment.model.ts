@@ -42,3 +42,12 @@ export interface CreateAppointmentRequest {
   /** ISO 8601 UTC date-time string. */
   startTime: string;
 }
+
+/** Body of a 409 Conflict response when a booking overlaps an existing appointment (CL-2.1.2). */
+export interface AppointmentConflict {
+  practitionerName: string;
+  /** ISO 8601 UTC date-time string. */
+  conflictStart: string;
+  /** ISO 8601 UTC date-time string. */
+  conflictEnd: string;
+}
