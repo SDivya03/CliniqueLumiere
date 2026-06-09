@@ -108,6 +108,45 @@ public class PatientsControllerTests
     }
 
     [Fact]
+    public async Task Create_WithMedicalHistory_RoundTripsHistory()
+    {
+        await using var db = NewContext();
+        var controller = new PatientsController(db);
+        var request = ValidRequest();
+        request.MedicalHistory = new MedicalHistoryDto
+        {
+            Allergies = "Penicillin",
+            Medications = "Ibuprofen",
+            Conditions = "Asthma",
+            Notes = "Reviewed at intake",
+        };
+
+        var result = await controller.Create(request);
+
+        var created = Assert.IsType<CreatedAtActionResult>(result.Result);
+        var body = Assert.IsType<PatientResponse>(created.Value);
+        Assert.NotNull(body.MedicalHistory);
+        Assert.Equal("Penicillin", body.MedicalHistory!.Allergies);
+        Assert.Equal("Asthma", body.MedicalHistory.Conditions);
+
+        var saved = await db.Patients.SingleAsync();
+        Assert.Equal("Ibuprofen", saved.MedicalMedications);
+    }
+
+    [Fact]
+    public async Task Create_WithoutMedicalHistory_ReturnsNullHistory()
+    {
+        await using var db = NewContext();
+        var controller = new PatientsController(db);
+
+        var result = await controller.Create(ValidRequest());
+
+        var created = Assert.IsType<CreatedAtActionResult>(result.Result);
+        var body = Assert.IsType<PatientResponse>(created.Value);
+        Assert.Null(body.MedicalHistory);
+    }
+
+    [Fact]
     public async Task GetAll_OrdersByLastNameThenFirstName()
     {
         await using var db = NewContext();

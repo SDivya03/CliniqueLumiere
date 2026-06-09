@@ -31,4 +31,7 @@ public class CreatePatientRequest
     public string? Gender { get; set; }
 
     public EmergencyContactDto? EmergencyContact { get; set; }
+
+    /// <summary>Optional medical history captured at intake (Story CL-1.2.1).</summary>
+    public MedicalHistoryDto? MedicalHistory { get; set; }
 }

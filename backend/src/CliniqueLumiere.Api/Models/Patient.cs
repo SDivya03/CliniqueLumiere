@@ -1,8 +1,8 @@
 namespace CliniqueLumiere.Api.Models;
 
 /// <summary>
-/// A registered clinic patient. Emergency-contact fields are stored flat and
-/// projected into a nested object at the API boundary.
+/// A registered clinic patient. Emergency-contact and medical-history fields are
+/// stored flat and projected into nested objects at the API boundary.
 /// </summary>
 public class Patient
 {
@@ -26,6 +26,15 @@ public class Patient
     public string? EmergencyContactName { get; set; }
 
     public string? EmergencyContactPhone { get; set; }
+
+    /// <summary>Free-text medical history captured at intake (Story CL-1.2.1).</summary>
+    public string? MedicalAllergies { get; set; }
+
+    public string? MedicalMedications { get; set; }
+
+    public string? MedicalConditions { get; set; }
+
+    public string? MedicalNotes { get; set; }
 
     /// <summary>UTC timestamp set when the record is created.</summary>
     public DateTimeOffset CreatedAt { get; set; }

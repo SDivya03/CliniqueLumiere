@@ -19,6 +19,10 @@ public static class PatientMapping
             Gender = Normalise(request.Gender),
             EmergencyContactName = Normalise(request.EmergencyContact?.Name),
             EmergencyContactPhone = Normalise(request.EmergencyContact?.Phone),
+            MedicalAllergies = Normalise(request.MedicalHistory?.Allergies),
+            MedicalMedications = Normalise(request.MedicalHistory?.Medications),
+            MedicalConditions = Normalise(request.MedicalHistory?.Conditions),
+            MedicalNotes = Normalise(request.MedicalHistory?.Notes),
             CreatedAt = createdAt,
         };
     }
@@ -28,6 +32,12 @@ public static class PatientMapping
     {
         var hasEmergencyContact =
             patient.EmergencyContactName is not null || patient.EmergencyContactPhone is not null;
+
+        var hasMedicalHistory =
+            patient.MedicalAllergies is not null
+            || patient.MedicalMedications is not null
+            || patient.MedicalConditions is not null
+            || patient.MedicalNotes is not null;
 
         return new PatientResponse
         {
@@ -43,6 +53,15 @@ public static class PatientMapping
                 {
                     Name = patient.EmergencyContactName,
                     Phone = patient.EmergencyContactPhone,
+                }
+                : null,
+            MedicalHistory = hasMedicalHistory
+                ? new MedicalHistoryDto
+                {
+                    Allergies = patient.MedicalAllergies,
+                    Medications = patient.MedicalMedications,
+                    Conditions = patient.MedicalConditions,
+                    Notes = patient.MedicalNotes,
                 }
                 : null,
             CreatedAt = patient.CreatedAt,
