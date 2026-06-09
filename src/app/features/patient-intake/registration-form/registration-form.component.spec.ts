@@ -101,4 +101,18 @@ describe('RegistrationFormComponent', () => {
     expect(component.registered()).toBe(true);
     expect(component.controls.firstName.value).toBe('');
   });
+
+  it('auto-dismisses the success banner after a few seconds (CL-1.1.3)', async () => {
+    jest.useFakeTimers();
+    try {
+      fillValid();
+      await component.submit();
+      expect(component.registered()).toBe(true);
+
+      jest.advanceTimersByTime(5000);
+      expect(component.registered()).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });
