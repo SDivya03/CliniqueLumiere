@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -15,7 +15,11 @@ import { MatSelectModule } from '@angular/material/select';
 
 import { Gender } from '../../../core/models/patient.model';
 import { PatientService } from '../services/patient.service';
+import { RecentlyRegisteredComponent } from '../recently-registered/recently-registered.component';
 import { phoneValidator } from '../../../shared/validators/phone.validator';
+
+/** How long the success banner stays visible before auto-dismissing (ms). */
+const SUCCESS_VISIBLE_MS = 5000;
 
 /**
  * Patient registration form (Story CL-1.1.1).
@@ -38,6 +42,7 @@ import { phoneValidator } from '../../../shared/validators/phone.validator';
     MatNativeDateModule,
     MatButtonModule,
     MatIconModule,
+    RecentlyRegisteredComponent,
   ],
   templateUrl: './registration-form.component.html',
   styleUrl: './registration-form.component.scss',
@@ -45,6 +50,10 @@ import { phoneValidator } from '../../../shared/validators/phone.validator';
 export class RegistrationFormComponent {
   private readonly fb = inject(FormBuilder);
   private readonly patientService = inject(PatientService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  /** Timer that hides the success banner; cleared on resubmit and on destroy. */
+  private dismissTimer?: ReturnType<typeof setTimeout>;
 
   /** Gender options rendered in the dropdown. */
   readonly genders = Object.values(Gender);
@@ -81,6 +90,9 @@ export class RegistrationFormComponent {
         this.patientService.clearErrors();
       }
     });
+
+    // Don't leave a pending hide-timer running after the component is gone.
+    this.destroyRef.onDestroy(() => this.clearDismissTimer());
   }
 
   /** Convenience accessor for template error checks. */
@@ -91,6 +103,7 @@ export class RegistrationFormComponent {
    * inline errors appear and aborts without calling the API.
    */
   async submit(): Promise<void> {
+    this.clearDismissTimer();
     this.registered.set(false);
 
     if (this.form.invalid) {
@@ -115,6 +128,21 @@ export class RegistrationFormComponent {
     if (created) {
       this.registered.set(true);
       this.form.reset();
+      this.scheduleDismiss();
+    }
+  }
+
+  /** Show the success banner briefly, then hide it automatically (Story CL-1.1.3). */
+  private scheduleDismiss(): void {
+    this.clearDismissTimer();
+    this.dismissTimer = setTimeout(() => this.registered.set(false), SUCCESS_VISIBLE_MS);
+  }
+
+  /** Cancel a pending auto-dismiss, if any. */
+  private clearDismissTimer(): void {
+    if (this.dismissTimer !== undefined) {
+      clearTimeout(this.dismissTimer);
+      this.dismissTimer = undefined;
     }
   }
 

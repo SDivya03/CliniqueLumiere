@@ -105,6 +105,18 @@ describe('RegistrationFormComponent', () => {
     expect(component.controls.firstName.value).toBe('');
   });
 
+  it('auto-dismisses the success banner after a few seconds (CL-1.1.3)', async () => {
+    jest.useFakeTimers();
+    try {
+      fillValid();
+      await component.submit();
+      expect(component.registered()).toBe(true);
+
+      jest.advanceTimersByTime(5000);
+      expect(component.registered()).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
   it('renders the inline duplicate-email message after a real 409 response (CL-1.1.2)', async () => {
     // Exercise the real service path: a 409 must surface as an inline message in the DOM.
     registerSpy.mockRestore();
