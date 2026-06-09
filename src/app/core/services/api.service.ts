@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { CreatePatientRequest, Patient } from '../models/patient.model';
+import { CreatePatientRequest, Patient, UpdatePatientRequest } from '../models/patient.model';
 import {
   Appointment,
   CreateAppointmentRequest,
@@ -46,5 +46,10 @@ export class ApiService {
   /** Book a new appointment. Resolves with the created record on success. */
   createAppointment(payload: CreateAppointmentRequest): Observable<Appointment> {
     return this.http.post<Appointment>(`${API_BASE}/appointments`, payload);
+  }
+
+  /** Update an existing patient. Resolves with the updated record on success. */
+  updatePatient(id: number, payload: UpdatePatientRequest): Observable<Patient> {
+    return this.http.put<Patient>(`${API_BASE}/patients/${id}`, payload);
   }
 }

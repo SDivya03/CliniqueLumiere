@@ -167,4 +167,92 @@ public class PatientsControllerTests
         Assert.Equal("Adam", ordered[1].LastName);
         Assert.Equal("Zola", ordered[2].LastName);
     }
+
+    [Fact]
+    public async Task Update_PersistsChanges_AndReturnsOk()
+    {
+        await using var db = NewContext();
+        var controller = new PatientsController(db);
+        var create = Assert.IsType<CreatedAtActionResult>((await controller.Create(ValidRequest())).Result);
+        var id = ((PatientResponse)create.Value!).Id;
+
+        var update = new UpdatePatientRequest
+        {
+            FirstName = "Marie",
+            LastName = "Durand",
+            Email = "marie.dubois@example.com",
+            Gender = "Female",
+            MedicalHistory = new MedicalHistoryDto { Allergies = "Latex" },
+        };
+
+        var result = await controller.Update(id, update);
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var body = Assert.IsType<PatientResponse>(ok.Value);
+        Assert.Equal("Durand", body.LastName);
+        Assert.Equal("Latex", body.MedicalHistory!.Allergies);
+
+        var saved = await db.Patients.SingleAsync();
+        Assert.Equal("Durand", saved.LastName);
+        Assert.Equal("Latex", saved.MedicalAllergies);
+    }
+
+    [Fact]
+    public async Task Update_NonExistentPatient_ReturnsNotFound()
+    {
+        await using var db = NewContext();
+        var controller = new PatientsController(db);
+
+        var result = await controller.Update(999, new UpdatePatientRequest
+        {
+            FirstName = "Ghost",
+            LastName = "User",
+            Email = "ghost@example.com",
+        });
+
+        var notFound = Assert.IsType<NotFoundObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status404NotFound, notFound.StatusCode);
+    }
+
+    [Fact]
+    public async Task Update_KeepingOwnEmail_Succeeds()
+    {
+        await using var db = NewContext();
+        var controller = new PatientsController(db);
+        var create = Assert.IsType<CreatedAtActionResult>((await controller.Create(ValidRequest())).Result);
+        var id = ((PatientResponse)create.Value!).Id;
+
+        // Re-submitting the same email (different casing) for the same patient is not a conflict.
+        var result = await controller.Update(id, new UpdatePatientRequest
+        {
+            FirstName = "Marie",
+            LastName = "Dubois",
+            Email = "MARIE.DUBOIS@example.com",
+        });
+
+        Assert.IsType<OkObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task Update_EmailTakenByAnotherPatient_ReturnsConflict()
+    {
+        await using var db = NewContext();
+        var controller = new PatientsController(db);
+        await controller.Create(ValidRequest()); // marie.dubois@example.com
+        var second = ValidRequest();
+        second.Email = "lucas@example.com";
+        var created = Assert.IsType<CreatedAtActionResult>((await controller.Create(second)).Result);
+        var secondId = ((PatientResponse)created.Value!).Id;
+
+        // Try to change the second patient's email to the first patient's email.
+        var result = await controller.Update(secondId, new UpdatePatientRequest
+        {
+            FirstName = "Lucas",
+            LastName = "Moreau",
+            Email = "marie.dubois@example.com",
+        });
+
+        var conflict = Assert.IsType<ConflictObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status409Conflict, conflict.StatusCode);
+    }
 }
