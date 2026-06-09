@@ -60,10 +60,10 @@ A feature is done when:
 1. **PO** selects 3 features for the sprint and writes acceptance criteria.
 2. **Developer** opens a feature branch (`feature/<ticket>-<short-description>`).
 3. **Developer + Claude** implement together — developer leads, Claude writes code on request.
-4. **Developer** opens a PR to `develop` when the Definition of Done is met.
+4. **Developer** opens a PR to `master` when the Definition of Done is met.
 5. **Peer developer** reviews the PR.
-6. **Testers** validate on the `develop` branch.
-7. **Release manager** (any dev) merges `develop` → `main` at end of sprint.
+6. **Testers** validate on the `master` branch after merge.
+7. **Release manager** (any dev) tags `master` `v<major>.<minor>.<patch>` at end of sprint.
 
 ### Where Claude hands off
 
@@ -143,13 +143,12 @@ Claude should remind the developer to check this before marking a task complete:
 
 ## 6. Repo — How do we share one repo?
 
-### Branching strategy: Gitflow
+### Branching strategy: GitHub Flow
 
 ```
-main          ← production-ready code only
-develop       ← integration branch, always green
+master        ← integration + production branch; always green
 feature/...   ← one branch per feature/ticket
-hotfix/...    ← emergency fixes branched from main
+hotfix/...    ← emergency fixes branched from master
 ```
 
 ### Branch naming
@@ -163,15 +162,15 @@ Examples: `feature/CL-42-patient-intake`, `hotfix/CL-99-fix-appointment-overlap`
 
 ### PR rules
 
-- PRs target `develop` (never `main` directly).
+- PRs target `master`.
 - At least **1 developer approval** required before merge.
-- Testers validate on `develop` before the sprint release merge to `main`.
+- Testers validate on `master` after merge, before the sprint release tag.
 - Claude drafts the PR description; the human submits it.
 
-### Merge to main
+### Release
 
-- Only at end-of-sprint release, after testers sign off.
-- Tagged with `v<major>.<minor>.<patch>`.
+- At end-of-sprint release, after testers sign off.
+- Tagged on `master` with `v<major>.<minor>.<patch>`.
 
 ---
 
