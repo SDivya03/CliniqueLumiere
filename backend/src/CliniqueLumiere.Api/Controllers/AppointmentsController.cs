@@ -35,18 +35,22 @@ public class AppointmentsController : ControllerBase
         return Ok(appointments.Select(a => a.ToResponse()));
     }
 
-    /// <summary>Book a new appointment (Story CL-2.1.1).</summary>
+    /// <summary>Book a new appointment (Stories CL-2.1.1, CL-2.1.2).</summary>
     /// <remarks>
     /// End time is derived server-side from the service's <c>DurationMinutes</c>.
     /// Start time must be in the future.
+    /// Returns 409 when the requested time slot overlaps an existing appointment
+    /// for the same practitioner (overlap: newStart &lt; existing.End AND newEnd &gt; existing.Start).
     /// </remarks>
     /// <response code="201">Appointment created.</response>
     /// <response code="400">Validation failed or start time is not in the future.</response>
     /// <response code="404">Patient, practitioner, or service not found.</response>
+    /// <response code="409">Practitioner already has an overlapping appointment.</response>
     [HttpPost]
     [ProducesResponseType(typeof(AppointmentResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(AppointmentConflictResponse), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AppointmentResponse>> Create([FromBody] CreateAppointmentRequest request)
     {
         if (request.StartTime <= DateTimeOffset.UtcNow)
@@ -72,6 +76,26 @@ public class AppointmentsController : ControllerBase
             return NotFound($"Service {request.ServiceId} not found.");
         }
 
+        var newStart = request.StartTime;
+        var newEnd = newStart.AddMinutes(service.DurationMinutes);
+
+        var conflict = await _db.Appointments
+            .Where(a =>
+                a.PractitionerId == request.PractitionerId &&
+                a.StartTime < newEnd &&
+                a.EndTime > newStart)
+            .FirstOrDefaultAsync();
+
+        if (conflict is not null)
+        {
+            return Conflict(new AppointmentConflictResponse
+            {
+                PractitionerName = $"{practitioner.FirstName} {practitioner.LastName}",
+                ConflictStart = conflict.StartTime,
+                ConflictEnd = conflict.EndTime,
+            });
+        }
+
         var appointment = new Appointment
         {
             PatientId = request.PatientId,
@@ -80,8 +104,8 @@ public class AppointmentsController : ControllerBase
             Practitioner = practitioner,
             ServiceId = request.ServiceId,
             Service = service,
-            StartTime = request.StartTime,
-            EndTime = request.StartTime.AddMinutes(service.DurationMinutes),
+            StartTime = newStart,
+            EndTime = newEnd,
             CreatedAt = DateTimeOffset.UtcNow,
         };
 

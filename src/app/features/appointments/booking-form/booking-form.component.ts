@@ -63,6 +63,7 @@ export class BookingFormComponent implements OnInit {
   readonly submitting = this.appointmentService.submitting;
   readonly submitError = this.appointmentService.submitError;
   readonly loadError = this.appointmentService.loadError;
+  readonly conflict = this.appointmentService.conflict;
 
   /** The patient selected from the autocomplete; drives the rest of the form. */
   readonly selectedPatient = signal<Patient | null>(null);
@@ -182,6 +183,15 @@ export class BookingFormComponent implements OnInit {
       this.selectedPatient.set(null);
       this.appointmentService.clearPatientSuggestions();
     }
+  }
+
+  /**
+   * Format an ISO 8601 date-time string as a local "HH:mm" time for display
+   * in the conflict message (Story CL-2.1.2).
+   */
+  formatTime(iso: string): string {
+    const d = new Date(iso);
+    return `${`${d.getHours()}`.padStart(2, '0')}:${`${d.getMinutes()}`.padStart(2, '0')}`;
   }
 
   /**

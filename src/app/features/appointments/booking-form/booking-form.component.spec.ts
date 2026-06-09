@@ -5,7 +5,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { BookingFormComponent } from './booking-form.component';
 import { AppointmentService } from '../services/appointment.service';
-import { Appointment } from '../../../core/models/appointment.model';
+import { Appointment, AppointmentConflict } from '../../../core/models/appointment.model';
 import { Patient } from '../../../core/models/patient.model';
 
 describe('BookingFormComponent', () => {
@@ -169,5 +169,42 @@ describe('BookingFormComponent', () => {
 
   it('endTime is empty when start time or service is not set', () => {
     expect(component.endTime()).toBe('');
+  });
+
+  describe('conflict detection (CL-2.1.2)', () => {
+    const fillAndSelect = () => {
+      component.selectedPatient.set(fakePatient);
+      component.form.patchValue({
+        patientSearch: 'Sophie Bernard',
+        practitionerId: 1,
+        serviceId: 2,
+        date: new Date('2027-01-01'),
+        startTime: '09:00',
+      });
+    };
+
+    it('does not reset the form when a 409 conflict is returned', async () => {
+      jest.spyOn(appointmentService, 'book').mockResolvedValue(null);
+      fillAndSelect();
+      await component.submit();
+
+      expect(component.booked()).toBe(false);
+      expect(component.form.controls.practitionerId.value).toBe(1);
+      expect(component.selectedPatient()).toBe(fakePatient);
+    });
+
+    it('formatTime converts an ISO string to HH:mm', () => {
+      expect(component.formatTime('2027-01-01T09:00:00.000Z')).toMatch(/^\d{2}:\d{2}$/);
+    });
+
+    it('conflict signal is exposed from the service', () => {
+      const fakeConflict: AppointmentConflict = {
+        practitionerName: 'Claire Dubois',
+        conflictStart: '2027-01-01T09:00:00Z',
+        conflictEnd: '2027-01-01T09:30:00Z',
+      };
+      appointmentService['_conflict'].set(fakeConflict);
+      expect(component.conflict()).toEqual(fakeConflict);
+    });
   });
 });
