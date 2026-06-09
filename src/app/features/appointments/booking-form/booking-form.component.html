@@ -1,0 +1,149 @@
+<mat-card class="booking-card">
+  <mat-card-header>
+    <mat-card-title>Book an appointment</mat-card-title>
+    <mat-card-subtitle>Select patient, practitioner, and service</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    @if (booked()) {
+      <div class="cl-banner cl-banner--success" role="status">
+        <mat-icon>check_circle</mat-icon>
+        <span>Appointment booked successfully.</span>
+      </div>
+    }
+
+    @if (loadError()) {
+      <div class="cl-banner cl-banner--error" role="alert">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ loadError() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+      <!-- Patient autocomplete — must be filled first; rest of form is locked until a patient is selected -->
+      <mat-form-field appearance="outline" class="cl-full-width">
+        <mat-label>Patient</mat-label>
+        <input
+          matInput
+          formControlName="patientSearch"
+          [matAutocomplete]="patientAuto"
+          placeholder="Type name or email…"
+          required
+        />
+        <mat-autocomplete
+          #patientAuto="matAutocomplete"
+          (optionSelected)="onPatientSelected($event.option.value)"
+        >
+          @for (patient of patientSuggestions(); track patient.id) {
+            <mat-option [value]="patient">
+              {{ patient.firstName }} {{ patient.lastName }}
+              <span class="cl-patient-email">{{ patient.email }}</span>
+            </mat-option>
+          }
+        </mat-autocomplete>
+        @if (controls.patientSearch.touched && controls.patientSearch.hasError('required')) {
+          <mat-error>Patient is required</mat-error>
+        }
+        @if (controls.patientSearch.touched && controls.patientSearch.value && !selectedPatient()) {
+          <mat-error>Please select a patient from the list</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Remaining fields — disabled until a patient is selected -->
+      <fieldset [disabled]="!selectedPatient()" class="cl-fieldset">
+
+        <div class="cl-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Practitioner</mat-label>
+            <mat-select formControlName="practitionerId" required>
+              @for (p of practitioners(); track p.id) {
+                <mat-option [value]="p.id">{{ p.firstName }} {{ p.lastName }} — {{ p.specialty }}</mat-option>
+              }
+            </mat-select>
+            @if (controls.practitionerId.touched && controls.practitionerId.hasError('required')) {
+              <mat-error>Practitioner is required</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Service</mat-label>
+            <mat-select formControlName="serviceId" required>
+              @for (s of services(); track s.id) {
+                <mat-option [value]="s.id">{{ s.name }} ({{ s.durationMinutes }} min)</mat-option>
+              }
+            </mat-select>
+            @if (controls.serviceId.touched && controls.serviceId.hasError('required')) {
+              <mat-error>Service is required</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Date</mat-label>
+            <input
+              matInput
+              [matDatepicker]="apptPicker"
+              [min]="minDate"
+              formControlName="date"
+              required
+            />
+            <mat-datepicker-toggle matIconSuffix [for]="apptPicker"></mat-datepicker-toggle>
+            <mat-datepicker #apptPicker></mat-datepicker>
+            @if (controls.date.touched && controls.date.hasError('required')) {
+              <mat-error>Date is required</mat-error>
+            }
+            @if (controls.date.touched && controls.date.hasError('matDatepickerMin')) {
+              <mat-error>Date must be in the future</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Start time</mat-label>
+            <input
+              matInput
+              type="time"
+              formControlName="startTime"
+              required
+            />
+            @if (controls.startTime.touched && controls.startTime.hasError('required')) {
+              <mat-error>Start time is required</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>End time (auto-calculated)</mat-label>
+            <input matInput [value]="endTime()" readonly disabled />
+            @if (selectedService()) {
+              <mat-hint>{{ selectedService()?.durationMinutes }} min · {{ selectedService()?.name }}</mat-hint>
+            }
+          </mat-form-field>
+        </div>
+
+      </fieldset>
+
+      @if (conflict()) {
+        <div class="cl-banner cl-banner--error" role="alert">
+          <mat-icon>event_busy</mat-icon>
+          <span>
+            Time slot conflict: {{ conflict()!.practitionerName }} is already booked from
+            {{ formatTime(conflict()!.conflictStart) }} to {{ formatTime(conflict()!.conflictEnd) }}
+          </span>
+        </div>
+      }
+
+      @if (submitError()) {
+        <div class="cl-banner cl-banner--error" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ submitError() }}</span>
+        </div>
+      }
+
+      <div class="cl-actions">
+        <button mat-flat-button color="primary" type="submit" [disabled]="!canSubmit()">
+          {{ submitting() ? 'Booking…' : 'Book appointment' }}
+        </button>
+      </div>
+
+    </form>
+  </mat-card-content>
+</mat-card>

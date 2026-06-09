@@ -20,5 +20,11 @@ export const routes: Routes = [
       import('./features/patient-intake/patient-list/patient-list.component').then(
         (m) => m.PatientListComponent,
       ),
+    path: 'appointments/new',
+    title: 'Book Appointment — Clinique Lumière',
+    loadComponent: () =>
+      import(
+        './features/appointments/booking-form/booking-form.component'
+      ).then((m) => m.BookingFormComponent),
   },
 ];
