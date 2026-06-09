@@ -48,5 +48,9 @@ public class ClinicDbContext : DbContext
         appointment.HasOne(a => a.Patient).WithMany().HasForeignKey(a => a.PatientId);
         appointment.HasOne(a => a.Practitioner).WithMany().HasForeignKey(a => a.PractitionerId);
         appointment.HasOne(a => a.Service).WithMany().HasForeignKey(a => a.ServiceId);
+        patient.Property(p => p.MedicalAllergies).HasMaxLength(2000);
+        patient.Property(p => p.MedicalMedications).HasMaxLength(2000);
+        patient.Property(p => p.MedicalConditions).HasMaxLength(2000);
+        patient.Property(p => p.MedicalNotes).HasMaxLength(2000);
     }
 }
