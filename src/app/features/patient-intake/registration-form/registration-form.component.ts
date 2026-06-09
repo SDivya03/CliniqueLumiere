@@ -8,12 +8,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
-import { Gender } from '../../../core/models/patient.model';
+import { Gender, MedicalHistory } from '../../../core/models/patient.model';
 import { PatientService } from '../services/patient.service';
 import { phoneValidator } from '../../../shared/validators/phone.validator';
 
@@ -36,6 +37,7 @@ import { phoneValidator } from '../../../shared/validators/phone.validator';
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatExpansionModule,
     MatButtonModule,
     MatIconModule,
   ],
@@ -69,6 +71,10 @@ export class RegistrationFormComponent {
     gender: this.fb.control<Gender | null>(null),
     emergencyContactName: ['', [Validators.maxLength(120)]],
     emergencyContactPhone: ['', [phoneValidator()]],
+    allergies: ['', [Validators.maxLength(2000)]],
+    medications: ['', [Validators.maxLength(2000)]],
+    conditions: ['', [Validators.maxLength(2000)]],
+    notes: ['', [Validators.maxLength(2000)]],
   });
 
   /** Disable submit while invalid or in flight. */
@@ -110,6 +116,12 @@ export class RegistrationFormComponent {
         value.emergencyContactName,
         value.emergencyContactPhone,
       ),
+      medicalHistory: this.buildMedicalHistory(
+        value.allergies,
+        value.medications,
+        value.conditions,
+        value.notes,
+      ),
     });
 
     if (created) {
@@ -126,6 +138,23 @@ export class RegistrationFormComponent {
       return null;
     }
     return { name: trimmedName, phone: trimmedPhone };
+  }
+
+  /** Build medical history only when at least one field is filled (Story CL-1.2.1). */
+  private buildMedicalHistory(
+    allergies: string,
+    medications: string,
+    conditions: string,
+    notes: string,
+  ): MedicalHistory | null {
+    const history: MedicalHistory = {
+      allergies: allergies.trim(),
+      medications: medications.trim(),
+      conditions: conditions.trim(),
+      notes: notes.trim(),
+    };
+    const hasAny = Object.values(history).some((field) => field.length > 0);
+    return hasAny ? history : null;
   }
 
   /** Format a Date as a yyyy-mm-dd string without timezone drift. */

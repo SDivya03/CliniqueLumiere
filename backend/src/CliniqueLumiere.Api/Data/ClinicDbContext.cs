@@ -25,5 +25,9 @@ public class ClinicDbContext : DbContext
         patient.Property(p => p.Gender).HasMaxLength(40);
         patient.Property(p => p.EmergencyContactName).HasMaxLength(120);
         patient.Property(p => p.EmergencyContactPhone).HasMaxLength(40);
+        patient.Property(p => p.MedicalAllergies).HasMaxLength(2000);
+        patient.Property(p => p.MedicalMedications).HasMaxLength(2000);
+        patient.Property(p => p.MedicalConditions).HasMaxLength(2000);
+        patient.Property(p => p.MedicalNotes).HasMaxLength(2000);
     }
 }

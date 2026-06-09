@@ -17,6 +17,14 @@ export interface EmergencyContact {
   phone: string;
 }
 
+/** Optional medical history captured during intake (Story CL-1.2.1). */
+export interface MedicalHistory {
+  allergies: string;
+  medications: string;
+  conditions: string;
+  notes: string;
+}
+
 /** A patient record as returned by the API. */
 export interface Patient {
   id: number;
@@ -27,6 +35,7 @@ export interface Patient {
   dateOfBirth: string | null;
   gender: Gender | null;
   emergencyContact: EmergencyContact | null;
+  medicalHistory: MedicalHistory | null;
   createdAt: string;
 }
 
@@ -39,4 +48,5 @@ export interface CreatePatientRequest {
   dateOfBirth: string | null;
   gender: Gender | null;
   emergencyContact: EmergencyContact | null;
+  medicalHistory: MedicalHistory | null;
 }
