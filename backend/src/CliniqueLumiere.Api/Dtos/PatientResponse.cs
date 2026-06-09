@@ -19,5 +19,7 @@ public class PatientResponse
 
     public EmergencyContactDto? EmergencyContact { get; set; }
 
+    public MedicalHistoryDto? MedicalHistory { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; }
 }

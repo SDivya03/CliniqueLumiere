@@ -1,0 +1,23 @@
+@if (count() > 0) {
+  <mat-card class="recent-card" aria-live="polite">
+    <mat-card-header>
+      <mat-card-title>Recently registered</mat-card-title>
+      <mat-card-subtitle>{{ count() }} this session — newest first</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-list>
+        @for (patient of patients(); track patient.id) {
+          <mat-list-item>
+            <mat-icon matListItemIcon>person</mat-icon>
+            <span matListItemTitle>{{ patient.firstName }} {{ patient.lastName }}</span>
+            <span matListItemLine>{{ patient.email }}</span>
+            <span matListItemMeta class="recent-time">
+              {{ patient.createdAt | date: 'shortTime' }}
+            </span>
+          </mat-list-item>
+        }
+      </mat-list>
+    </mat-card-content>
+  </mat-card>
+}

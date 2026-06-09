@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { RegistrationFormComponent } from './registration-form.component';
@@ -22,6 +25,7 @@ describe('RegistrationFormComponent', () => {
     dateOfBirth: null,
     gender: null,
     emergencyContact: null,
+    medicalHistory: null,
     createdAt: '2026-01-01T00:00:00Z',
   };
 
@@ -100,5 +104,95 @@ describe('RegistrationFormComponent', () => {
     await component.submit();
     expect(component.registered()).toBe(true);
     expect(component.controls.firstName.value).toBe('');
+  });
+
+  it('auto-dismisses the success banner after a few seconds (CL-1.1.3)', async () => {
+    jest.useFakeTimers();
+    try {
+      fillValid();
+      await component.submit();
+      expect(component.registered()).toBe(true);
+
+      jest.advanceTimersByTime(5000);
+      expect(component.registered()).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  it('renders the inline duplicate-email message after a real 409 response (CL-1.1.2)', async () => {
+    // Exercise the real service path: a 409 must surface as an inline message in the DOM.
+    registerSpy.mockRestore();
+    const httpMock = TestBed.inject(HttpTestingController);
+    fillValid();
+
+    const submitted = component.submit();
+    const req = httpMock.expectOne('http://localhost:5050/api/patients');
+    expect(req.request.method).toBe('POST');
+    req.flush(
+      { title: 'Email already registered' },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await submitted;
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    const error = el.querySelector('.cl-field-error');
+    expect(error?.textContent).toContain('A patient with this email already exists');
+    expect(component.registered()).toBe(false);
+    httpMock.verify();
+  });
+
+  it('treats all medical history fields as optional (CL-1.2.1)', () => {
+    fillValid();
+    // No medical history entered — the form must still be valid.
+    expect(component.form.valid).toBe(true);
+  });
+
+  it('includes medical history in the payload when filled (CL-1.2.1)', async () => {
+    fillValid();
+    component.form.patchValue({
+      allergies: '  Penicillin  ',
+      medications: 'Ibuprofen',
+      conditions: 'Asthma',
+      notes: '',
+    });
+
+    await component.submit();
+
+    expect(registerSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        medicalHistory: {
+          allergies: 'Penicillin',
+          medications: 'Ibuprofen',
+          conditions: 'Asthma',
+          notes: '',
+        },
+      }),
+    );
+  });
+
+  it('sends null medical history when no field is filled (CL-1.2.1)', async () => {
+    fillValid();
+    await component.submit();
+    expect(registerSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ medicalHistory: null }),
+    );
+  });
+
+  it('keeps entered medical history when the section is collapsed (CL-1.2.1)', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    // Reactive-form controls live in the FormGroup, independent of the panel's
+    // expanded/collapsed state, so toggling the header must not clear them.
+    component.controls.allergies.setValue('Penicillin');
+    fixture.detectChanges();
+
+    const header = el.querySelector('mat-expansion-panel-header') as HTMLElement;
+    header.click(); // expand
+    fixture.detectChanges();
+    header.click(); // collapse
+    fixture.detectChanges();
+
+    expect(component.controls.allergies.value).toBe('Penicillin');
+    // The textarea is retained in the DOM (content is not destroyed on collapse).
+    expect(el.querySelector('textarea[formcontrolname="allergies"]')).not.toBeNull();
   });
 });

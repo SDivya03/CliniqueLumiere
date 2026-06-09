@@ -2,6 +2,7 @@ using CliniqueLumiere.Api.Controllers;
 using CliniqueLumiere.Api.Data;
 using CliniqueLumiere.Api.Dtos;
 using CliniqueLumiere.Api.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -86,6 +87,63 @@ public class PatientsControllerTests
         var body = Assert.IsType<PatientResponse>(created.Value);
         Assert.NotNull(body.EmergencyContact);
         Assert.Equal("Paul Dubois", body.EmergencyContact!.Name);
+    }
+
+    [Fact]
+    public async Task Create_WithDuplicateEmail_ReturnsConflict()
+    {
+        await using var db = NewContext();
+        var controller = new PatientsController(db);
+        await controller.Create(ValidRequest());
+
+        // Same person re-entered with different email casing — must still be detected (CL-1.1.2).
+        var duplicate = ValidRequest();
+        duplicate.Email = "MARIE.dubois@EXAMPLE.com";
+        var result = await controller.Create(duplicate);
+
+        var conflict = Assert.IsType<ConflictObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status409Conflict, conflict.StatusCode);
+        // The duplicate must not have been persisted.
+        Assert.Equal(1, await db.Patients.CountAsync());
+    }
+
+    [Fact]
+    public async Task Create_WithMedicalHistory_RoundTripsHistory()
+    {
+        await using var db = NewContext();
+        var controller = new PatientsController(db);
+        var request = ValidRequest();
+        request.MedicalHistory = new MedicalHistoryDto
+        {
+            Allergies = "Penicillin",
+            Medications = "Ibuprofen",
+            Conditions = "Asthma",
+            Notes = "Reviewed at intake",
+        };
+
+        var result = await controller.Create(request);
+
+        var created = Assert.IsType<CreatedAtActionResult>(result.Result);
+        var body = Assert.IsType<PatientResponse>(created.Value);
+        Assert.NotNull(body.MedicalHistory);
+        Assert.Equal("Penicillin", body.MedicalHistory!.Allergies);
+        Assert.Equal("Asthma", body.MedicalHistory.Conditions);
+
+        var saved = await db.Patients.SingleAsync();
+        Assert.Equal("Ibuprofen", saved.MedicalMedications);
+    }
+
+    [Fact]
+    public async Task Create_WithoutMedicalHistory_ReturnsNullHistory()
+    {
+        await using var db = NewContext();
+        var controller = new PatientsController(db);
+
+        var result = await controller.Create(ValidRequest());
+
+        var created = Assert.IsType<CreatedAtActionResult>(result.Result);
+        var body = Assert.IsType<PatientResponse>(created.Value);
+        Assert.Null(body.MedicalHistory);
     }
 
     [Fact]
