@@ -2,6 +2,7 @@ using CliniqueLumiere.Api.Controllers;
 using CliniqueLumiere.Api.Data;
 using CliniqueLumiere.Api.Dtos;
 using CliniqueLumiere.Api.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -86,6 +87,24 @@ public class PatientsControllerTests
         var body = Assert.IsType<PatientResponse>(created.Value);
         Assert.NotNull(body.EmergencyContact);
         Assert.Equal("Paul Dubois", body.EmergencyContact!.Name);
+    }
+
+    [Fact]
+    public async Task Create_WithDuplicateEmail_ReturnsConflict()
+    {
+        await using var db = NewContext();
+        var controller = new PatientsController(db);
+        await controller.Create(ValidRequest());
+
+        // Same person re-entered with different email casing — must still be detected (CL-1.1.2).
+        var duplicate = ValidRequest();
+        duplicate.Email = "MARIE.dubois@EXAMPLE.com";
+        var result = await controller.Create(duplicate);
+
+        var conflict = Assert.IsType<ConflictObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status409Conflict, conflict.StatusCode);
+        // The duplicate must not have been persisted.
+        Assert.Equal(1, await db.Patients.CountAsync());
     }
 
     [Fact]
