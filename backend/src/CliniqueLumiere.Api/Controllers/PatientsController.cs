@@ -19,12 +19,27 @@ public class PatientsController : ControllerBase
         _db = db;
     }
 
-    /// <summary>List all registered patients, ordered by last name then first name.</summary>
+    /// <summary>
+    /// List registered patients, with optional full-text search across name and email.
+    /// Used by the booking form autocomplete (Story CL-2.1.1).
+    /// </summary>
+    /// <param name="search">Optional search term; matches first name, last name, or email (case-insensitive).</param>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<PatientResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<PatientResponse>>> GetAll()
+    public async Task<ActionResult<IEnumerable<PatientResponse>>> GetAll([FromQuery] string? search)
     {
-        var patients = await _db.Patients
+        var query = _db.Patients.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLowerInvariant();
+            query = query.Where(p =>
+                p.FirstName.ToLower().Contains(term) ||
+                p.LastName.ToLower().Contains(term) ||
+                p.Email.Contains(term));
+        }
+
+        var patients = await query
             .OrderBy(p => p.LastName)
             .ThenBy(p => p.FirstName)
             .ToListAsync();
