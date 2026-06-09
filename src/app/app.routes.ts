@@ -10,4 +10,12 @@ export const routes: Routes = [
         './features/patient-intake/registration-form/registration-form.component'
       ).then((m) => m.RegistrationFormComponent),
   },
+  {
+    path: 'appointments/new',
+    title: 'Book Appointment — Clinique Lumière',
+    loadComponent: () =>
+      import(
+        './features/appointments/booking-form/booking-form.component'
+      ).then((m) => m.BookingFormComponent),
+  },
 ];
