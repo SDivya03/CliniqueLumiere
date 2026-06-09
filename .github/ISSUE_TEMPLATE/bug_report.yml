@@ -1,0 +1,102 @@
+name: Bug report
+description: Report a defect found while validating a feature against its acceptance criteria.
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. A bug is always "an acceptance criterion is not met" —
+        please tie it to the ticket and the specific criterion so a developer can act on it.
+
+        **Severity scale**
+        - **Blocker** — feature unusable, data loss, or a double-booking gets through
+        - **Major** — acceptance criterion not met, no workaround
+        - **Minor** — acceptance criterion not met, a workaround exists
+        - **Trivial** — cosmetic only
+
+        Never paste real or production patient data — use fictional values.
+
+  - type: input
+    id: ticket
+    attributes:
+      label: Ticket
+      description: The ticket whose acceptance criterion is violated.
+      placeholder: CL-1.1.2 (and the issue number if known)
+    validations:
+      required: true
+
+  - type: textarea
+    id: violated-ac
+    attributes:
+      label: Violated acceptance criterion
+      description: Quote the acceptance criterion verbatim from tickets.md.
+      placeholder: '"API returns HTTP 409 when a registration request contains an already-registered email"'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: See the scale above.
+      options:
+        - Blocker
+        - Major
+        - Minor
+        - Trivial
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Branch, browser, and where the app was running.
+      value: "branch master · frontend localhost:4200 · API localhost:5050 · browser: "
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Concrete enough for a developer to follow without asking.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: What the acceptance criterion requires.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: What actually happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Playwright trace/screenshot paths, API response, console output. Drag-and-drop images here.
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Frequency (always / intermittent), suspected area, anything else.
+    validations:
+      required: false

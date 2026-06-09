@@ -9,6 +9,10 @@ Produces a clean, reproducible bug report mapped back to the acceptance criterio
 violates. Per the team CLAUDE.md, **Claude never opens issues** — this skill drafts the
 report and the human submits it on GitHub.
 
+The canonical structure is the GitHub bug form at `.github/ISSUE_TEMPLATE/bug_report.yml`.
+Keep the field order below identical to that form so the draft pastes straight into the
+"New issue -> Bug report" fields. If you change one, change the other.
+
 ## Inputs
 
 - The observation: what was seen (from the human, or from a `/e2e-test` failure).

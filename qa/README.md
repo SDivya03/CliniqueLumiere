@@ -19,6 +19,8 @@ Testers validate on `master` after a PR is reviewed and merged (GitHub Flow — 
 3. **Report** — `/bug-report`
    Turns a failure or manual observation into a GitHub issue draft tied to the violated
    AC. Output: `qa/bugs/<ticket>-<slug>.md`. The tester submits the issue — Claude does not.
+   The default structure (fields + severity scale + `bug` label) is the GitHub issue form
+   at `.github/ISSUE_TEMPLATE/bug_report.yml`; the skill draft mirrors it field-for-field.
 4. **Sign off** — `/coverage-check EPIC n`
    Before the sprint release tag on `master`, confirms every AC has a test behind it
    (including the Jest/xUnit tests the developers write) and lists the gaps.
