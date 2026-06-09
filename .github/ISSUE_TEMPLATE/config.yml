@@ -1,0 +1,3 @@
+# Disable blank issues so every new issue goes through a template
+# (Bug report or Test case) - each carries its ASCII banner on top.
+blank_issues_enabled: false
