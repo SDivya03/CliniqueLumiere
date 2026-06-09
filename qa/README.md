@@ -12,7 +12,8 @@ Testers validate on `master` after a PR is reviewed and merged (GitHub Flow — 
 
 1. **Plan** — `/testplan CL-x.x.x`
    Turns a ticket's acceptance criteria into test cases + a traceability matrix.
-   Output: `qa/testplans/CL-x.x.x.md`.
+   Output: `qa/testplans/CL-x.x.x.md`. Individual cases can also be tracked as issues via
+   the Test case form at `.github/ISSUE_TEMPLATE/test_case.yml`.
 2. **Automate & run** — `/e2e-test CL-x.x.x`
    Writes and runs Playwright end-to-end tests against the running app, mapping each
    acceptance criterion to a PASS/FAIL. Output: `e2e/CL-x.x.x.spec.ts`.

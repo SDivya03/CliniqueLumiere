@@ -1,0 +1,95 @@
+# ,d                             ,d
+# 88                             88
+# MM88MMM  ,adPPYba,  ,adPPYba,  MM88MMM  ,adPPYba,  ,adPPYYba,  ,adPPYba,   ,adPPYba,
+#   88    a8P_____88  I8[    ""    88    a8"     ""  ""     `Y8  I8[    ""  a8P_____88
+#   88    8PP"""""""   `"Y8ba,     88    8b          ,adPPPPP88   `"Y8ba,   8PP"""""""
+#   88,   "8b,   ,aa  aa    ]8I    88,   "8a,   ,aa  88,    ,88  aa    ]8I  "8b,   ,aa
+#   "Y888  `"Ybbd8"'  `"YbbdP"'    "Y888  `"Ybbd8"'  `"8bbdP"Y8  `"YbbdP"'   `"Ybbd8"'
+#
+name: Test case
+description: Define a test case that validates an acceptance criterion.
+title: "[TEST] "
+labels: ["test-case"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A test case validates one acceptance criterion. Tie it to the ticket, keep steps
+        concrete, and use fictional data only (never real patient data).
+
+  - type: input
+    id: ticket
+    attributes:
+      label: Ticket
+      description: The ticket this test case validates.
+      placeholder: CL-1.1.2 (and the issue number if known)
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criterion
+    attributes:
+      label: Acceptance criterion covered
+      description: Quote the acceptance criterion verbatim from tickets.md.
+      placeholder: '"API returns HTTP 409 when a registration request contains an already-registered email"'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options:
+        - Manual
+        - Automatable (e2e / Playwright)
+        - Automatable (unit)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: textarea
+    id: preconditions
+    attributes:
+      label: Preconditions
+      description: State/data that must exist before the steps run.
+      placeholder: A patient with email marie.dubois@example.com already exists.
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Test steps
+      description: Concrete, ordered steps a tester can follow without guessing.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: test-data
+    attributes:
+      label: Test data
+      description: Fictional values used (names on @example.com, +33 6 .. phone style).
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: What must happen for this case to pass — derived from the acceptance criterion.
+    validations:
+      required: true
