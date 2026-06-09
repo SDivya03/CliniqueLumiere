@@ -96,7 +96,28 @@ test('CL-1.1.2: duplicate email shows an inline error without reload', async ({ 
 
 ---
 
-## 6. Determinism
+## 6. Selector & test-hook policy (e2e)
+
+Agreement between developers and testers — **hybrid**. The goal: stable e2e tests that do
+not break on restyling or reworded copy, with minimal extra markup.
+
+1. **Prefer accessible selectors**, in this order: `getByRole`, `getByLabel`,
+   `getByPlaceholder`, `getByText`. They work on existing markup and double as an
+   accessibility check.
+2. **Add a `data-testid` only when an accessible selector is ambiguous or impossible:**
+   - repeated elements (a row in the patient/appointment list, one of several "Cancel" buttons)
+   - elements with no stable text (status badges, icon-only buttons, the success banner)
+   - content whose text changes (the "Upcoming: … at …" alert)
+3. **Naming:** `data-testid="<feature>-<element>"` in kebab-case —
+   e.g. `patient-row`, `appointment-cancel-btn`, `conflict-error`, `upcoming-alert`.
+4. **Who adds it:** the tester records the needed hook (a comment in the e2e spec, or in
+   the bug report / PR), the **developer** adds it to `src/`. Testers never edit `src/`.
+5. **A `data-testid` is a test contract:** don't rename, repurpose, or remove one without
+   checking the e2e suite first.
+
+---
+
+## 7. Determinism
 
 - No test depends on wall-clock time. For the "within 30 minutes" alert (CL-3.2.1),
   control the clock (fixed/injected time) rather than asserting against `now`.
@@ -106,7 +127,7 @@ test('CL-1.1.2: duplicate email shows an inline error without reload', async ({ 
 
 ---
 
-## 7. Running the suites
+## 8. Running the suites
 
 ```
 # frontend unit (Jest)
@@ -121,7 +142,7 @@ npx playwright test
 
 ---
 
-## 8. Definition of Done (testing slice)
+## 9. Definition of Done (testing slice)
 
 Before a ticket is signed off:
 
