@@ -3,6 +3,9 @@
 How the testers (Arjen, Krithi) validate features against acceptance criteria. Backed by
 four Claude Code skills under `.claude/skills/`.
 
+> **Testing conventions** (naming, structure, test data, determinism) live in
+> [TESTING-CONVENTIONS.md](./TESTING-CONVENTIONS.md) — read that first.
+
 ## The testing loop
 
 Testers validate on `master` after a PR is reviewed and merged (GitHub Flow — see CLAUDE.md §6).
